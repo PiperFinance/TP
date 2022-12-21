@@ -1,9 +1,9 @@
 version: '3'
 
 services:
-  TP:
-    hostname: TP
-    container_name: TP
+  tp:
+    hostname: tp
+    container_name: tp
     build:
       context: .
       dockerfile: Dockerfile
