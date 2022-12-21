@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  TP:
+    hostname: TP
+    container_name: TP
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - 9765:9765
+    environment:
+      - PORT=9765
+    networks:
+      - tp_default
+networks:
+  tp_default:
+    driver: bridge
