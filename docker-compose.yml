@@ -14,6 +14,8 @@ services:
       - PORT=9765
     networks:
       - tp_default
+
 networks:
   tp_default:
     driver: bridge
+    name: tp_default
