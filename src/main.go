@@ -35,10 +35,8 @@ func main() {
 	cr := cron.New()
 	_, err := cr.AddFunc("*/2 * * * *", func() {
 		ids := make([]string, 1)
-		for tokenId, token := range configs.AllChainsTokens() {
-			if len(token.Detail.CoingeckoId) == 0 {
-				fmt.Println(tokenId)
-			} else {
+		for _, token := range configs.AllChainsTokens() {
+			if len(token.Detail.CoingeckoId) > 0 {
 				ids = append(ids, token.Detail.CoingeckoId)
 			}
 		}
