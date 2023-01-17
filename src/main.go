@@ -41,16 +41,19 @@ func main() {
 			}
 		}
 		chunks := utils.Chunks(ids, 450)
+		counter := 0
 		for _, chunk := range chunks {
 			res, err := cg.SimplePrice(chunk, []string{"usd"})
 			if err != nil {
 				log.Error(err)
 			} else {
+				counter++
 				for geckoId, currencies := range *res {
 					cacheKey := fmt.Sprintf("CT:%d", configs.GeckoIdToTokenId(geckoId))
 					_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, float64(currencies["usd"]), store.WithExpiration(120*time.Second))
 				}
 				time.Sleep(130 * time.Millisecond)
+				log.Infof("--succefully fetched %d", counter)
 			}
 		}
 
