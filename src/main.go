@@ -81,7 +81,7 @@ func GetTokenPrice(c *gin.Context) {
 	tokenPrice, _ := configs.TokenPriceCache.Get(context.Background(), cacheKey)
 	if tokenPrice != 0 {
 		c.IndentedJSON(http.StatusOK, tokenPrice)
-
+		return
 	}
 	coin, err := cg.CoinsID(
 		token.Detail.CoingeckoId, false, false, true, false, false, false)
