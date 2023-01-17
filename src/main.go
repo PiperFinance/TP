@@ -40,7 +40,7 @@ func main() {
 				ids = append(ids, token.Detail.CoingeckoId)
 			}
 		}
-		chunks := utils.Chunks(ids, 400)
+		chunks := utils.Chunks(ids, 450)
 		for _, chunk := range chunks {
 			res, err := cg.SimplePrice(chunk, []string{"usd"})
 			if err != nil {
@@ -79,22 +79,20 @@ func GetTokenPrice(c *gin.Context) {
 	token := configs.GetToken(schema.TokenId(tokenId))
 
 	tokenPrice, _ := configs.TokenPriceCache.Get(context.Background(), cacheKey)
-	if tokenPrice != 0 {
-		c.IndentedJSON(http.StatusOK, tokenPrice)
-		return
-	}
-	coin, err := cg.CoinsID(
-		token.Detail.CoingeckoId, false, false, true, false, false, false)
-	if err != nil {
-		log.Error(err)
-	}
-	if err != nil || coin != nil {
-		_ = configs.TokenPriceCache.Delete(context.Background(), cacheKey)
-	} else {
-		tokenPrice, _ = coin.MarketData.CurrentPrice["usd"]
-		_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, tokenPrice, store.WithExpiration(30*time.Second))
-		c.IndentedJSON(http.StatusOK, tokenPrice)
+	if tokenPrice == 0 {
+		coin, err := cg.CoinsID(
+			token.Detail.CoingeckoId, false, false, true, false, false, false)
+		if err != nil {
+			log.Error(err)
+		}
+		if err != nil || coin != nil {
+			_ = configs.TokenPriceCache.Delete(context.Background(), cacheKey)
+		} else {
+			tokenPrice, _ = coin.MarketData.CurrentPrice["usd"]
+			_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, tokenPrice, store.WithExpiration(30*time.Second))
+		}
 	}
 	log.Infof("TID: %s  R: %s", tokenId, tokenPrice)
+	c.IndentedJSON(http.StatusOK, tokenPrice)
 
 }

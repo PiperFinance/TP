@@ -13,6 +13,7 @@ services:
     environment:
       - PORT=9765
       - REDIS_URL=redis://redis:6379
+      - GIN_MODE=release
     networks:
       - tp_default
       - redis_db
