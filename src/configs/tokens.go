@@ -17,6 +17,8 @@ var (
 	// CD chain Tokens URL
 	allTokensArray       = make([]schema.Token, 0)
 	allTokens            = make(schema.TokenMapping)
+	geckoTokens          = make(map[string]schema.Token)
+	geckoTokenIds        = make(map[string]schema.TokenId)
 	chainTokens          = make(map[schema.ChainId]schema.TokenMapping)
 	NULL_TOKEN_ADDRESS   = common.HexToAddress("0x0000000000000000000000000000000000000000")
 	NATIVE_TOKEN_ADDRESS = common.HexToAddress("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")
@@ -65,12 +67,14 @@ func init() {
 			}
 			chainTokens[chainId][tokenId] = token
 			allTokensArray = append(allTokensArray, token)
+			geckoTokens[token.Detail.CoingeckoId] = token
+			geckoTokenIds[token.Detail.CoingeckoId] = tokenId
 		}
 	})
 
 }
 
-func GetToken(id schema.TokenId) schema.Token{
+func GetToken(id schema.TokenId) schema.Token {
 	return allTokens[id]
 }
 
@@ -82,6 +86,12 @@ func AllChainsTokensArray() []schema.Token {
 }
 func ChainTokens(id schema.ChainId) schema.TokenMapping {
 	return chainTokens[id]
+}
+func GeckoIdToToken(geckoId string) schema.Token {
+	return geckoTokens[geckoId]
+}
+func GeckoIdToTokenId(geckoId string) schema.TokenId {
+	return geckoTokenIds[geckoId]
 }
 
 //func ChainTokensArray(id schema.ChainId) []schema.Token {

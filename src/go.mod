@@ -5,9 +5,10 @@ go 1.19
 require (
 	github.com/eko/gocache/v3 v3.1.2
 	github.com/ethereum/go-ethereum v1.10.26
+	github.com/gin-gonic/gin v1.8.1
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/jellydator/ttlcache/v3 v3.0.1
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/rs/cors v1.7.0
 	github.com/sirupsen/logrus v1.9.0
 	github.com/superoo7/go-gecko v1.0.0
 	go.mongodb.org/mongo-driver v1.11.1
@@ -25,7 +26,6 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
-	github.com/gin-gonic/gin v1.8.1 // indirect
 	github.com/go-ole/go-ole v1.2.1 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
@@ -52,6 +52,7 @@ require (
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rjeczalik/notify v0.9.1 // indirect
+	github.com/robfig/cron/v3 v3.0.0 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.5 // indirect
