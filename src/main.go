@@ -31,6 +31,7 @@ func main() {
 	router := gin.Default()
 
 	router.GET("/", GetTokenPrice)
+	router.POST("/", GetTokenPriceMulti)
 
 	cr := cron.New()
 	_, err := cr.AddFunc("*/5 * * * *", func() {
@@ -52,7 +53,7 @@ func main() {
 					cacheKey := fmt.Sprintf("CT:%d", configs.GeckoIdToTokenId(geckoId))
 					_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, float64(currencies["usd"]), store.WithExpiration(5*time.Minute))
 				}
-				time.Sleep(10 * time.Second)
+				time.Sleep(15 * time.Second)
 				log.Infof("--succefully fetched %d", counter)
 			}
 		}
@@ -64,6 +65,23 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func GetTokenPriceMulti(c *gin.Context) {
+	ids := make([]schema.TokenId, 1)
+	res := make(map[schema.TokenId]float64)
+	err := c.BindJSON(&ids)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	for _, tokenId := range ids {
+		cacheKey := fmt.Sprintf("CT:%d", tokenId)
+		tokenPrice, _ := configs.TokenPriceCache.Get(context.Background(), cacheKey)
+		res[tokenId] = tokenPrice
+	}
+	c.JSON(http.StatusOK, res)
+
 }
 
 func GetTokenPrice(c *gin.Context) {
