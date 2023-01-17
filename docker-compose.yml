@@ -12,10 +12,15 @@ services:
       - 9765:9765
     environment:
       - PORT=9765
+      - REDIS_URL=redis://redis:6379
     networks:
       - tp_default
+      - redis_db
 
 networks:
+  redis_db:
+    external:
+      name: redis_db
   tp_default:
     driver: bridge
     name: tp_default

@@ -66,10 +66,12 @@ func main() {
 }
 
 func GetTokenPrice(c *gin.Context) {
+
 	_tokenId := c.Query("tokenId")
 	if len(_tokenId) == 0 {
 		return
 	}
+
 	tokenId, err := strconv.ParseInt(_tokenId, 10, 32)
 	cacheKey := fmt.Sprintf("CT:%d", tokenId)
 
