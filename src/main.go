@@ -20,7 +20,7 @@ var cg *coingecko.Client
 
 func init() {
 	httpClient := &http.Client{
-		Timeout: time.Second * 3,
+		Timeout: time.Second * 8,
 	}
 	cg = coingecko.NewClient(httpClient)
 
@@ -33,7 +33,7 @@ func main() {
 	router.GET("/", GetTokenPrice)
 
 	cr := cron.New()
-	_, err := cr.AddFunc("*/2 * * * *", func() {
+	_, err := cr.AddFunc("*/5 * * * *", func() {
 		ids := make([]string, 1)
 		for _, token := range configs.AllChainsTokens() {
 			if len(token.Detail.CoingeckoId) > 0 {
@@ -50,9 +50,9 @@ func main() {
 				counter++
 				for geckoId, currencies := range *res {
 					cacheKey := fmt.Sprintf("CT:%d", configs.GeckoIdToTokenId(geckoId))
-					_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, float64(currencies["usd"]), store.WithExpiration(120*time.Second))
+					_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, float64(currencies["usd"]), store.WithExpiration(5*time.Minute))
 				}
-				time.Sleep(130 * time.Millisecond)
+				time.Sleep(10 * time.Second)
 				log.Infof("--succefully fetched %d", counter)
 			}
 		}
