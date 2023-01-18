@@ -16,11 +16,25 @@ import (
 	"time"
 )
 
-var cg *coingecko.Client
+var (
+	cg *coingecko.Client
+)
+
+const (
+	// total of 9000 tokens with 10 req/minute
+	// call count  ::: 9000 / 400 = 22 -> 10 - 10 - 2 => 3 minutes
+	PriceUpdaterCron        = "*/5 * * * *"
+	CGPriceUpdatorChunkSize = 400
+	CGCallTimeout           = 5 * time.Second
+	CGTPMultiCallDelay      = 10 * time.Second
+
+	TPSingleTTL = 30 * time.Minute
+	TPMultiTTL  = 10 * time.Minute
+)
 
 func init() {
 	httpClient := &http.Client{
-		Timeout: time.Second * 8,
+		Timeout: CGCallTimeout,
 	}
 	cg = coingecko.NewClient(httpClient)
 
@@ -34,14 +48,14 @@ func main() {
 	router.POST("/", GetTokenPriceMulti)
 
 	cr := cron.New()
-	_, err := cr.AddFunc("*/5 * * * *", func() {
+	_, err := cr.AddFunc(PriceUpdaterCron, func() {
 		ids := make([]string, 1)
 		for _, token := range configs.AllChainsTokens() {
 			if len(token.Detail.CoingeckoId) > 0 {
 				ids = append(ids, token.Detail.CoingeckoId)
 			}
 		}
-		chunks := utils.Chunks(ids, 450)
+		chunks := utils.Chunks(ids, CGPriceUpdatorChunkSize)
 		counter := 0
 		for _, chunk := range chunks {
 			res, err := cg.SimplePrice(chunk, []string{"usd"})
@@ -51,9 +65,9 @@ func main() {
 				counter++
 				for geckoId, currencies := range *res {
 					cacheKey := fmt.Sprintf("CT:%d", configs.GeckoIdToTokenId(geckoId))
-					_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, float64(currencies["usd"]), store.WithExpiration(5*time.Minute))
+					_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, float64(currencies["usd"]), store.WithExpiration(TPMultiTTL))
 				}
-				time.Sleep(15 * time.Second)
+				time.Sleep(CGTPMultiCallDelay)
 				log.Infof("--succefully fetched %d", counter)
 			}
 		}
@@ -96,24 +110,23 @@ func GetTokenPrice(c *gin.Context) {
 
 	if err != nil {
 		log.Error(err)
+		return
 	}
 	token := configs.GetToken(schema.TokenId(tokenId))
-
 	tokenPrice, _ := configs.TokenPriceCache.Get(context.Background(), cacheKey)
-	if tokenPrice == 0 {
+
+	if tokenPrice == 0 && len(token.Detail.CoingeckoId) > 0 {
 		coin, err := cg.CoinsID(
 			token.Detail.CoingeckoId, false, false, true, false, false, false)
 		if err != nil {
 			log.Error(err)
 		}
 		if err != nil || coin != nil {
-			_ = configs.TokenPriceCache.Delete(context.Background(), cacheKey)
+			_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, -1, store.WithExpiration(TPSingleTTL))
 		} else {
 			tokenPrice, _ = coin.MarketData.CurrentPrice["usd"]
-			_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, tokenPrice, store.WithExpiration(30*time.Second))
+			_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, tokenPrice, store.WithExpiration(TPSingleTTL))
 		}
 	}
-	log.Infof("TID: %s  R: %s", tokenId, tokenPrice)
 	c.IndentedJSON(http.StatusOK, tokenPrice)
-
 }
