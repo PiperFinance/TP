@@ -2,26 +2,26 @@ version: '3'
 
 services:
   tp:
-    hostname: tp
+    hostname: TP
     container_name: tp
     build:
       context: .
       dockerfile: Dockerfile
     restart: always
     ports:
-      - 9765:9765
+      - 6004:6004
     environment:
-      - PORT=9765
-      - REDIS_URL=redis://redis:6379
-      - GIN_MODE=release
+      - PORT=6004
+      - REDIS_URL=redis://redis:6379/5
+      - GIN_MODE=debug
     networks:
-      - tp_default
+      - tp_net
       - redis_db
 
 networks:
   redis_db:
     external:
       name: redis_db
-  tp_default:
+  tp_net:
     driver: bridge
-    name: tp_default
+    name: tp_net

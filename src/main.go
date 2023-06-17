@@ -23,6 +23,7 @@ var (
 const (
 	// total of 9000 tokens with 10 req/minute
 	// call count  ::: 9000 / 400 = 22 -> 10 - 10 - 2 => 3 minutes
+	// calls are limited cause GET -> query params
 	PriceUpdaterCron        = "*/5 * * * *"
 	CGPriceUpdatorChunkSize = 400
 	CGCallTimeout           = 5 * time.Second
