@@ -19,3 +19,5 @@
 gin-bin
 data/
 .fleet/
+.env
+__debug_bin

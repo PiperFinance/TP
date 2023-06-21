@@ -1,8 +1,9 @@
 package schema
 
 import (
-	"github.com/ethereum/go-ethereum/common"
 	"net/url"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 type Network struct {
@@ -11,10 +12,12 @@ type Network struct {
 		Symbol   string `json:"symbol"`
 		Decimals int    `json:"decimals"`
 	} `json:"nativeCurrency"`
-	ChainId int    `json:"id"`
-	Name    string `json:"name"`
-	Network string `json:"network"`
-	RpcUrls struct {
+	ChainId    int    `json:"id"`
+	Name       string `json:"name"`
+	Symbol     string `json:"chain"`
+	SymbolSlug string `json:"chainSlug"`
+	Network    string `json:"network"`
+	RpcUrls    struct {
 		Infura  string `json:"infura"`
 		Default string `json:"default"`
 		Public  string `json:"public"`

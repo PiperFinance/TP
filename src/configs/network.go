@@ -3,23 +3,25 @@ package configs
 import (
 	"encoding/json"
 	"errors"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/ethclient"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"TP/contracts/MulticallContract"
-	"TP/schema"
 	"sync"
 	"time"
+
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
+	log "github.com/sirupsen/logrus"
+
+	Multicall "TP/contracts/MulticallContract"
+	"TP/schema"
 )
 
 var (
-	onceForEthClient     sync.Once
-	onceForMultiCall     sync.Once
 	onceForMainNet       sync.Once
 	Networks             = make([]schema.Network, 0)
+	SymbolNetwork        = make(map[string]*schema.Network)
+	SymbolSlugNetwork    = make(map[string]*schema.Network)
 	MULTICALL_V3_ADDRESS = common.HexToAddress("0xca11bde05977b3631167028862be2a173976ca11")
 	gethClients          = make(map[schema.ChainId]*ethclient.Client, 10)
 	multiCallInstances   = make(map[schema.ChainId]*Multicall.MulticallCaller, 10)
@@ -30,7 +32,6 @@ var (
 
 func init() {
 	onceForMainNet.Do(func() {
-
 		// Load Tokens ...
 
 		var byteValue []byte
@@ -69,6 +70,8 @@ func init() {
 			if err != nil {
 				log.Errorf("Client Connection Error : %s  @ chainId: %d", err, chainId)
 			} else {
+				SymbolNetwork[chain.Name] = &chain
+				SymbolSlugNetwork[chain.Network] = &chain
 				gethClients[chainId] = client
 				contractInstance, err := Multicall.NewMulticallCaller(MULTICALL_V3_ADDRESS, client)
 				if err != nil {
@@ -80,9 +83,11 @@ func init() {
 		}
 	})
 }
+
 func ChainContextTimeOut(id schema.ChainId) time.Duration {
 	return time.Millisecond * 5450
 }
+
 func ChainMultiCall(id schema.ChainId) *Multicall.MulticallCaller {
 	return multiCallInstances[id]
 }

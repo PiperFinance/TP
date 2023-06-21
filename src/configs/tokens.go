@@ -1,15 +1,19 @@
 package configs
 
 import (
-	"TP/schema"
 	"encoding/json"
 	"errors"
-	"github.com/ethereum/go-ethereum/common"
-	log "github.com/sirupsen/logrus"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
+
+	"github.com/ethereum/go-ethereum/common"
+	log "github.com/sirupsen/logrus"
+
+	"TP/schema"
 )
 
 var (
@@ -22,12 +26,11 @@ var (
 	chainTokens          = make(map[schema.ChainId]schema.TokenMapping)
 	NULL_TOKEN_ADDRESS   = common.HexToAddress("0x0000000000000000000000000000000000000000")
 	NATIVE_TOKEN_ADDRESS = common.HexToAddress("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")
-	tokensUrl            = "https://github.com/PiperFinance/CD/blob/main/tokens/outVerified/all_tokens.json?raw=true"
+	tokensUrl            = "https://raw.githubusercontent.com/PiperFinance/CD/main/tokens/outVerified/all_tokens.json"
 	tokensDir            = "data/all_tokens.json"
 )
 
 func init() {
-
 	onceForChainTokens.Do(func() {
 		// Load Tokens ...
 		var byteValue []byte
@@ -71,7 +74,14 @@ func init() {
 			geckoTokenIds[token.Detail.CoingeckoId] = tokenId
 		}
 	})
+}
 
+func GenTokenId(address common.Address, chainId schema.ChainId) schema.TokenId {
+	return schema.TokenId(fmt.Sprintf("%s-%d", strings.ToLower(address.String()), chainId))
+}
+
+func GenTokenIdExtra(address string, chainId schema.ChainId) schema.TokenId {
+	return schema.TokenId(fmt.Sprintf("%s-%d", strings.ToLower(address), chainId))
 }
 
 func GetToken(id schema.TokenId) schema.Token {
@@ -81,15 +91,19 @@ func GetToken(id schema.TokenId) schema.Token {
 func AllChainsTokens() schema.TokenMapping {
 	return allTokens
 }
+
 func AllChainsTokensArray() []schema.Token {
 	return allTokensArray
 }
+
 func ChainTokens(id schema.ChainId) schema.TokenMapping {
 	return chainTokens[id]
 }
+
 func GeckoIdToToken(geckoId string) schema.Token {
 	return geckoTokens[geckoId]
 }
+
 func GeckoIdToTokenId(geckoId string) schema.TokenId {
 	return geckoTokenIds[geckoId]
 }

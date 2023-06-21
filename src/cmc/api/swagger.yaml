@@ -1,0 +1,1298 @@
+openapi: 3.0.3
+info:
+  title: CoinMarketCap Cryptocurrency API Documentation
+  description: CoinMarketCap API
+  version: 1.26.0
+servers:
+- url: https://pro-api.coinmarketcap.com
+tags:
+- name: cryptocurrency
+  description: |-
+    ##### API endpoints for cryptocurrencies. This category currently includes 10 endpoints:
+    - [/v1/cryptocurrency/map](#operation/getV1CryptocurrencyMap) - CoinMarketCap ID map
+    - [/v1/cryptocurrency/info](#operation/getV1CryptocurrencyInfo) - Metadata
+    - [/v1/cryptocurrency/listings/latest](#operation/getV1CryptocurrencyListingsLatest) - Latest listings
+    - [/v1/cryptocurrency/listings/historical](#operation/getV1CryptocurrencyListingsHistorical) - Historical listings
+    - [/v1/cryptocurrency/quotes/latest](#operation/getV1CryptocurrencyQuotesLatest) - Latest quotes
+    - [/v1/cryptocurrency/quotes/historical](#operation/getV1CryptocurrencyQuotesHistorical) - Historical quotes
+    - [/v1/cryptocurrency/market-pairs/latest](#operation/getV1CryptocurrencyMarketpairsLatest) - Latest market pairs
+    - [/v1/cryptocurrency/ohlcv/latest](#operation/getV1CryptocurrencyOhlcvLatest) - Latest OHLCV
+    - [/v1/cryptocurrency/ohlcv/historical](#operation/getV1CryptocurrencyOhlcvHistorical) - Historical OHLCV
+    - [/v1/cryptocurrency/price-performance-stats/latest](#operation/getV1CryptocurrencyPriceperformancestatsLatest) - Price performance Stats
+paths:
+  /v1/cryptocurrency/map:
+    get:
+      tags:
+      - cryptocurrency
+      summary: CoinMarketCap ID Map
+      description: |-
+        Returns a mapping of all cryptocurrencies to unique CoinMarketCap `id`s. Per our <a href="#section/Best-Practices" target="_blank">Best Practices</a> we recommend utilizing CMC ID instead of cryptocurrency symbols to securely identify cryptocurrencies with our other endpoints and in your own application logic.  Each cryptocurrency returned includes typical identifiers such as `name`, `symbol`, and `token_address` for flexible mapping to `id`.
+
+          By default this endpoint returns cryptocurrencies that have actively tracked markets on supported exchanges. You may receive a map of all inactive cryptocurrencies by passing `listing_status=inactive`. You may also receive a map of registered cryptocurrency projects that are listed but do not yet meet methodology requirements to have tracked markets via `listing_status=untracked`. Please review our <a target="_blank" href="https://coinmarketcap.com/methodology/">methodology documentation</a> for additional details on listing states.
+
+          Cryptocurrencies returned include `first_historical_data` and `last_historical_data` timestamps to conveniently reference historical date ranges available to query with historical time-series data endpoints. You may also use the `aux` parameter to only include properties you require to slim down the payload if calling this endpoint frequently.
+
+          **This endpoint is available on the following <a href="https://coinmarketcap.com/api/features" target="_blank">API plans</a>:**
+          - Basic
+          - Hobbyist
+          - Startup
+          - Standard
+          - Professional
+          - Enterprise
+
+        **Cache / Update frequency:** Mapping data is updated only as needed, every 30 seconds.
+        **Plan credit use:** 1 API call credit per request no matter query size.
+        **CMC equivalent pages:** No equivalent, this data is only available via API.
+      operationId: getV1CryptocurrencyMap
+      parameters:
+      - name: listing_status
+        in: query
+        description: Only active cryptocurrencies are returned by default. Pass `inactive`
+          to get a list of cryptocurrencies that are no longer active. Pass `untracked`
+          to get a list of cryptocurrencies that are listed but do not yet meet methodology
+          requirements to have tracked markets available. You may pass one or more
+          comma-separated values.
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          default: active
+          enum:
+          - inactive
+          - untracked
+          - active
+      - name: start
+        in: query
+        description: Optionally offset the start (1-based index) of the paginated
+          list of items to return.
+        required: false
+        style: form
+        explode: true
+        schema:
+          minimum: 1
+          type: integer
+      - name: limit
+        in: query
+        description: Optionally specify the number of results to return. Use this
+          parameter and the "start" parameter to determine your own pagination size.
+        required: false
+        style: form
+        explode: true
+        schema:
+          maximum: 5000
+          minimum: 1
+          type: integer
+      - name: sort
+        in: query
+        description: What field to sort the list of cryptocurrencies by.
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+          enum:
+          - cmc_rank
+          - id
+      - name: symbol
+        in: query
+        description: "Optionally pass a comma-separated list of cryptocurrency symbols\
+          \ to return CoinMarketCap IDs for. If this option is passed, other options\
+          \ will be ignored."
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: aux
+        in: query
+        description: "Optionally specify a comma-separated list of supplemental data\
+          \ fields to return. Pass `platform,first_historical_data,last_historical_data,is_active,status`\
+          \ to include all auxiliary fields."
+        required: false
+        style: form
+        explode: true
+        schema:
+          pattern: "^(platform|first_historical_data|last_historical_data|is_active|status)+(?:,(platform|first_historical_data|last_historical_data|is_active|status)+)*$"
+          type: string
+      responses:
+        "200":
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/cryptocurrency-map-response-model'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-status-400-error-object'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-status-401-error-object'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-status-403-error-object'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-status-429-error-object'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-status-500-error-object'
+  /v1/cryptocurrency/quotes/latest:
+    get:
+      tags:
+      - cryptocurrency
+      summary: Quotes Latest
+      description: |-
+        Returns the latest market quote for 1 or more cryptocurrencies. Use the "convert" option to return market values in multiple fiat and cryptocurrency conversions in the same call.
+
+        **This endpoint is available on the following <a href="https://coinmarketcap.com/api/features" target="_blank">API plans</a>:**
+        - Basic
+        - Startup
+        - Hobbyist
+        - Standard
+        - Professional
+        - Enterprise
+
+        **Cache / Update frequency:** Every 60 seconds.
+        **Plan credit use:** 1 call credit per 100 cryptocurrencies returned (rounded up) and 1 call credit per `convert` option beyond the first.
+        **CMC equivalent pages:** Latest market data pages for specific cryptocurrencies like [coinmarketcap.com/currencies/bitcoin/](https://coinmarketcap.com/currencies/bitcoin/).
+        ***NOTE:** Use this endpoint to request the latest quote for specific cryptocurrencies. If you need to request all cryptocurrencies use [/v1/cryptocurrency/listings/latest](#operation/getV1CryptocurrencyListingsLatest) which is optimized for that purpose. The response data between these endpoints is otherwise the same.*
+      operationId: getV1CryptocurrencyQuotesLatest
+      parameters:
+      - name: id
+        in: query
+        description: "One or more comma-separated cryptocurrency CoinMarketCap IDs.\
+          \ Example: 1,2"
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: slug
+        in: query
+        description: "Alternatively pass a comma-separated list of cryptocurrency\
+          \ slugs. Example: \"bitcoin,ethereum\""
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+        x-convert:
+          lowercase: true
+      - name: symbol
+        in: query
+        description: "Alternatively pass one or more comma-separated cryptocurrency\
+          \ symbols. Example: \"BTC,ETH\". At least one \"id\" *or* \"slug\" *or*\
+          \ \"symbol\" is required for this request."
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: convert
+        in: query
+        description: "Optionally calculate market quotes in up to 120 currencies at\
+          \ once by passing a comma-separated list of cryptocurrency or fiat currency\
+          \ symbols. Each additional convert option beyond the first requires an additional\
+          \ call credit. A list of supported fiat options can be found [here](#section/Standards-and-Conventions).\
+          \ Each conversion is returned in its own \"quote\" object."
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: convert_id
+        in: query
+        description: "Optionally calculate market quotes by CoinMarketCap ID instead\
+          \ of symbol. This option is identical to `convert` outside of ID format.\
+          \ Ex: convert_id=1,2781 would replace convert=BTC,USD in your query. This\
+          \ parameter cannot be used when `convert` is used."
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: string
+      - name: aux
+        in: query
+        description: "Optionally specify a comma-separated list of supplemental data\
+          \ fields to return. Pass `num_market_pairs,cmc_rank,date_added,tags,platform,max_supply,circulating_supply,total_supply,market_cap_by_total_supply,volume_24h_reported,volume_7d,volume_7d_reported,volume_30d,volume_30d_reported,is_active,is_fiat`\
+          \ to include all auxiliary fields."
+        required: false
+        style: form
+        explode: true
+        schema:
+          pattern: "^(num_market_pairs|cmc_rank|date_added|tags|platform|max_supply|circulating_supply|total_supply|market_cap_by_total_supply|volume_24h_reported|volume_7d|volume_7d_reported|volume_30d|volume_30d_reported|is_active|is_fiat)+(?:,(num_market_pairs|cmc_rank|date_added|tags|platform|max_supply|circulating_supply|total_supply|market_cap_by_total_supply|volume_24h_reported|volume_7d|volume_7d_reported|volume_30d|volume_30d_reported|is_active|is_fiat)+)*$"
+          type: string
+          default: "num_market_pairs,cmc_rank,date_added,tags,platform,max_supply,circulating_supply,total_supply,is_active,is_fiat"
+      - name: skip_invalid
+        in: query
+        description: "Pass `true` to relax request validation rules. When requesting\
+          \ records on multiple cryptocurrencies an error is returned if no match\
+          \ is found for 1 or more requested cryptocurrencies. If set to true, invalid\
+          \ lookups will be skipped allowing valid cryptocurrencies to still be returned."
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+      responses:
+        "200":
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/cryptocurrency-quotes-latest-response-model'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-status-400-error-object'
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-status-401-error-object'
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-status-403-error-object'
+        "429":
+          description: Too Many Requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-status-429-error-object'
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/http-status-500-error-object'
+components:
+  schemas:
+    platform:
+      required:
+      - id
+      - name
+      - slug
+      - symbol
+      - token_address
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The unique CoinMarketCap ID for the parent platform cryptocurrency.
+          example: 1
+        name:
+          type: string
+          description: The name of the parent platform cryptocurrency.
+          example: Ethereum
+        symbol:
+          type: string
+          description: The ticker symbol for the parent platform cryptocurrency.
+          example: ETH
+        slug:
+          type: string
+          description: The web URL friendly shorthand version of the parent platform
+            cryptocurrency name.
+          example: ethereum
+        token_address:
+          type: string
+          description: The token address on the parent platform cryptocurrency.
+          example: 0xe41d2489571d322189246dafa5ebde1f4699f498
+      description: "Metadata about the parent cryptocurrency platform this cryptocurrency\
+        \ belongs to if it is a token, otherwise null."
+    technical_doc:
+      type: array
+      description: Array of white paper or technical documentation URLs.
+      example:
+      - https://bitcoin.org/bitcoin.pdf
+      items:
+        type: string
+        x-format:
+          uri: true
+      x-schema-name: technical_doc
+    explorer:
+      type: array
+      description: Array of block explorer URLs.
+      example:
+      - https://blockchain.coinmarketcap.com/chain/bitcoin
+      - https://blockchain.info/
+      - https://live.blockcypher.com/btc/
+      items:
+        type: string
+        x-format:
+          uri: true
+      x-schema-name: explorer
+    source_code:
+      type: array
+      description: Array of source code URLs.
+      example:
+      - https://github.com/bitcoin/
+      items:
+        type: string
+        x-format:
+          uri: true
+      x-schema-name: source_code
+    message_board:
+      type: array
+      description: Array of message board URLs.
+      example:
+      - https://bitcointalk.org
+      items:
+        type: string
+        x-format:
+          uri: true
+      x-schema-name: message_board
+    announcement:
+      type: array
+      description: Array of announcement URLs.
+      example: []
+      items:
+        type: string
+        x-format:
+          uri: true
+      x-schema-name: announcement
+    reddit:
+      type: array
+      description: Array of Reddit community page URLs.
+      example:
+      - https://reddit.com/r/bitcoin
+      items:
+        type: string
+        x-format:
+          uri: true
+      x-schema-name: reddit
+    cryptocurrencies-info-urls-object:
+      required:
+      - announcement
+      - chat
+      - explorer
+      - message_board
+      - reddit
+      - source_code
+      - technical_doc
+      - twitter
+      - website
+      type: object
+      properties:
+        website:
+          $ref: '#/components/schemas/website'
+        technical_doc:
+          $ref: '#/components/schemas/technical_doc'
+        explorer:
+          $ref: '#/components/schemas/explorer'
+        source_code:
+          $ref: '#/components/schemas/source_code'
+        message_board:
+          $ref: '#/components/schemas/message_board'
+        chat:
+          $ref: '#/components/schemas/chat'
+        announcement:
+          $ref: '#/components/schemas/announcement'
+        reddit:
+          $ref: '#/components/schemas/reddit'
+        twitter:
+          $ref: '#/components/schemas/twitter'
+      description: An object containing various resource URLs for this cryptocurrency.
+    cryptocurrencies-info-cryptocurrency-object:
+      required:
+      - category
+      - date_added
+      - description
+      - id
+      - logo
+      - name
+      - notice
+      - platform
+      - slug
+      - symbol
+      - tags
+      - urls
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The unique CoinMarketCap ID for this cryptocurrency.
+          example: 1
+        name:
+          type: string
+          description: The name of this cryptocurrency.
+          example: Bitcoin
+        symbol:
+          type: string
+          description: The ticker symbol for this cryptocurrency.
+          example: BTC
+        category:
+          type: string
+          description: The category for this cryptocurrency.
+          example: coin
+          enum:
+          - coin
+          - token
+        slug:
+          type: string
+          description: The web URL friendly shorthand version of this cryptocurrency
+            name.
+          example: bitcoin
+        logo:
+          type: string
+          description: "Link to a CoinMarketCap hosted logo png for this cryptocurrency.\
+            \ 64px is default size returned. Replace \"64x64\" in the image path with\
+            \ these alternative sizes: 16, 32, 64, 128, 200"
+          example: https://s2.coinmarketcap.com/static/img/coins/64x64/1.png
+        description:
+          type: string
+          description: A CoinMarketCap supplied brief description of this cryptocurrency.
+            This field will return null if a description is not available.
+          example: "Bitcoin (BTC) is a consensus network that enables a new payment\
+            \ system and a completely digital currency. Powered by its users, it is\
+            \ a peer to peer payment network that requires no central authority to\
+            \ operate."
+        date_added:
+          type: string
+          description: Timestamp (ISO 8601) of when this cryptocurrency was added
+            to CoinMarketCap.
+          format: date-time
+          example: 2013-04-28T00:00:00Z
+        notice:
+          type: string
+          description: "A [Markdown](https://commonmark.org/help/) formatted notice\
+            \ that may highlight a significant event or condition that is impacting\
+            \ the cryptocurrency or how it is displayed, otherwise null. A notice\
+            \ may highlight a recent or upcoming mainnet swap, symbol change, exploit\
+            \ event, or known issue with a particular exchange or market, for example.\
+            \ If present, this notice is also displayed in an alert banner at the\
+            \ top of the cryptocurrency's page on coinmarketcap.com."
+        tags:
+          $ref: '#/components/schemas/tags'
+        platform:
+          $ref: '#/components/schemas/platform'
+        urls:
+          $ref: '#/components/schemas/cryptocurrencies-info-urls-object'
+      description: A results object for each cryptocurrency requested. The map key
+        being the id/symbol used in the request.
+    cryptocurrency-info-results-map:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/cryptocurrencies-info-cryptocurrency-object'
+      description: Results of your query returned as an object map.
+      example:
+        "1":
+          urls:
+            website:
+            - https://bitcoin.org/
+            technical_doc:
+            - https://bitcoin.org/bitcoin.pdf
+            twitter: []
+            reddit:
+            - https://reddit.com/r/bitcoin
+            message_board:
+            - https://bitcointalk.org
+            announcement: []
+            chat: []
+            explorer:
+            - https://blockchain.coinmarketcap.com/chain/bitcoin
+            - https://blockchain.info/
+            - https://live.blockcypher.com/btc/
+            source_code:
+            - https://github.com/bitcoin/
+          logo: https://s2.coinmarketcap.com/static/img/coins/64x64/1.png
+          id: 1
+          name: Bitcoin
+          symbol: BTC
+          slug: bitcoin
+          description: "Bitcoin (BTC) is a consensus network that enables a new payment\
+            \ system and a completely digital currency. Powered by its users, it is\
+            \ a peer to peer payment network that requires no central authority to\
+            \ operate. On October 31st, 2008, an individual or group of individuals\
+            \ operating under the pseudonym \"Satoshi Nakamoto\" published the Bitcoin\
+            \ Whitepaper and described it as: \"a purely peer-to-peer version of electronic\
+            \ cash would allow online payments to be sent directly from one party\
+            \ to another without going through a financial institution.\""
+          date_added: 2013-04-28T00:00:00.000Z
+          tags:
+          - mineable
+          category: coin
+        "1027":
+          urls:
+            website:
+            - https://www.ethereum.org/
+            technical_doc:
+            - https://github.com/ethereum/wiki/wiki/White-Paper
+            twitter:
+            - https://twitter.com/ethereum
+            reddit:
+            - https://reddit.com/r/ethereum
+            message_board:
+            - https://forum.ethereum.org/
+            announcement:
+            - https://bitcointalk.org/index.php?topic=428589.0
+            chat:
+            - https://gitter.im/orgs/ethereum/rooms
+            explorer:
+            - https://blockchain.coinmarketcap.com/chain/ethereum
+            - https://etherscan.io/
+            - https://ethplorer.io/
+            source_code:
+            - https://github.com/ethereum
+          logo: https://s2.coinmarketcap.com/static/img/coins/64x64/1027.png
+          id: 1027
+          name: Ethereum
+          symbol: ETH
+          slug: ethereum
+          description: |-
+            Ethereum (ETH) is a smart contract platform that enables developers to build decentralized applications (dapps) conceptualized by Vitalik Buterin in 2013. ETH is the native currency for the Ethereum platform and also works as the transaction fees to miners on the Ethereum network.
+
+            Ethereum is the pioneer for blockchain based smart contracts. When running on the blockchain a smart contract becomes like a self-operating computer program that automatically executes when specific conditions are met. On the blockchain, smart contracts allow for code to be run exactly as programmed without any possibility of downtime, censorship, fraud or third-party interference. It can facilitate the exchange of money, content, property, shares, or anything of value. The Ethereum network went live on July 30th, 2015 with 72 million Ethereum premined.
+          date_added: 2015-08-07T00:00:00.000Z
+          tags:
+          - mineable
+          category: coin
+      x-schema-name: cryptocurrency-info-results-map
+    api-status-object:
+      required:
+      - credit_count
+      - elapsed
+      - error_code
+      - error_message
+      - timestamp
+      type: object
+      properties:
+        timestamp:
+          type: string
+          description: Current timestamp (ISO 8601) on the server.
+          format: date-time
+          example: 2021-03-09T20:40:17.153Z
+        error_code:
+          type: integer
+          description: An internal error code for the current error. If a unique platform
+            error code is not available the HTTP status code is returned. `null` is
+            returned if there is no error.
+        error_message:
+          type: string
+          description: An error message to go along with the error code.
+          example: ""
+        elapsed:
+          type: integer
+          description: Number of milliseconds taken to generate this response.
+          example: 10
+        credit_count:
+          type: integer
+          description: Number of API call credits that were used for this call.
+          example: 1
+      description: Standardized status object for API calls.
+      example:
+        error_message: ""
+        elapsed: 10
+        credit_count: 1
+        error_code: 0
+        timestamp: 2021-03-09T20:40:17.153Z
+    cryptocurrency-info-response-model:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/cryptocurrency-info-results-map'
+        status:
+          $ref: '#/components/schemas/api-status-object'
+    http-status-400-error-object:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/error-status'
+      description: Bad Request
+    http-status-401-error-object:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/error-status'
+      description: Unauthorized
+    http-status-403-error-object:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/error-status'
+      description: Forbidden
+    http-status-429-error-object:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/error-status'
+      description: Too Many Requests
+    error-status:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          description: Current ISO 8601 timestamp on the server.
+          format: date-time
+          example: 2018-06-02T22:51:28.209Z
+        error_code:
+          type: integer
+          description: An internal error code string for the current error. If a unique
+            platform error code is not available the HTTP status code is returned.
+          enum:
+          - 500
+        error_message:
+          type: string
+          description: An error message to go along with the error code.
+          example: An internal server error occurred
+        elapsed:
+          type: integer
+          description: Number of milliseconds taken to generate this response
+          example: 10
+        credit_count:
+          type: integer
+          description: Number of API call credits required for this call. Always 0
+            for errors.
+          example: 0
+    http-status-500-error-object:
+      type: object
+      properties:
+        status:
+          $ref: '#/components/schemas/error-status'
+      description: Internal Server Error
+    cryptocurrency-map-cryptocurrency-object:
+      required:
+      - id
+      - name
+      - slug
+      - symbol
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The unique cryptocurrency ID for this cryptocurrency.
+          example: 1
+        name:
+          type: string
+          description: The name of this cryptocurrency.
+          example: Bitcoin
+        symbol:
+          type: string
+          description: "The ticker symbol for this cryptocurrency, always in all caps."
+          example: BTC
+        slug:
+          type: string
+          description: The web URL friendly shorthand version of this cryptocurrency
+            name.
+          example: bitcoin
+        is_active:
+          type: integer
+          description: "1 if this cryptocurrency has at least 1 active market currently\
+            \ being tracked by the platform, otherwise 0. A value of 1 is analogous\
+            \ with `listing_status=active`."
+          example: 1
+        status:
+          type: string
+          enum:
+          - active
+          - inactive
+          - untracked
+        first_historical_data:
+          type: string
+          description: Timestamp (ISO 8601) of the date this cryptocurrency was first
+            available on the platform.
+          format: date-time
+          example: 2013-04-28T18:47:21Z
+        last_historical_data:
+          type: string
+          description: Timestamp (ISO 8601) of the last time this cryptocurrency's
+            market data was updated.
+          format: date-time
+          example: 2018-06-02T22:51:28.209Z
+        platform:
+          $ref: '#/components/schemas/platform'
+      description: Cryptocurrency object for each result
+    cryptocurrency-map-response-model:
+      required:
+      - data
+      - status
+      type: object
+      properties:
+        data:
+          type: array
+          description: Array of cryptocurrency object results.
+          items:
+            $ref: '#/components/schemas/cryptocurrency-map-cryptocurrency-object'
+        status:
+          $ref: '#/components/schemas/api-status-object'
+      example:
+        data:
+        - id: 1
+          name: Bitcoin
+          symbol: BTC
+          slug: bitcoin
+          is_active: 1
+          first_historical_data: 2013-04-28T18:47:21.000Z
+          last_historical_data: 2020-05-05T20:44:01.000Z
+        - id: 825
+          name: Tether
+          symbol: USDT
+          slug: tether
+          is_active: 1
+          first_historical_data: 2015-02-25T13:34:26.000Z
+          last_historical_data: 2020-05-05T20:44:01.000Z
+          platform:
+            id: 1027
+            name: Ethereum
+            symbol: ETH
+            slug: ethereum
+            token_address: 0xdac17f958d2ee523a2206206994597c13d831ec7
+        - id: 1839
+          name: Binance Coin
+          symbol: BNB
+          slug: binance-coin
+          is_active: 1
+          first_historical_data: 2017-07-25T04:30:05.000Z
+          last_historical_data: 2020-05-05T20:44:02.000Z
+          platform:
+            id: 1027
+            name: Ethereum
+            symbol: ETH
+            slug: ethereum
+            token_address: 0xB8c77482e45F1F44dE1745F52C74426C631bDD52
+        status:
+          timestamp: 2018-06-02T22:51:28.209Z
+          error_code: 0
+          error_message: ""
+          elapsed: 10
+          credit_count: 1
+    website:
+      type: array
+      description: Official website URLs.
+      example:
+      - https://binance.com
+      items:
+        type: string
+        x-format:
+          uri: true
+      x-schema-name: website
+    blog:
+      type: array
+      description: Official blog URLs.
+      example:
+      - https://blog.kraken.com/
+      items:
+        type: string
+        x-format:
+          uri: true
+    chat:
+      type: array
+      description: Official chat URLs.
+      example:
+      - https://t.me/coinbene
+      items:
+        type: string
+        x-format:
+          uri: true
+      x-schema-name: chat
+    fee:
+      type: array
+      description: Official web URLs covering exchange fees.
+      example:
+      - https://www.gdax.com/fees
+      items:
+        type: string
+        x-format:
+          uri: true
+    twitter:
+      type: array
+      description: Official twitter profile URLs.
+      example:
+      - https://twitter.com/Bitcoin
+      items:
+        type: string
+        x-format:
+          uri: true
+      x-schema-name: twitter
+    tags:
+      type: array
+      description: Array of tags associated with this cryptocurrency. Currently only
+        a mineable tag will be returned if the cryptocurrency is mineable. Additional
+        tags will be returned in the future.
+      example:
+      - mineable
+      items:
+        type: string
+      x-schema-name: tags
+    cryptocurrency-listings-latest-quote-map:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/cryptocurrency-listings-latest-quote-object'
+      description: A map of market quotes in different currency conversions. The default
+        map included is USD.
+      example:
+        USD:
+          price: 9283.92
+          volume_24h: 7155680000
+          percent_change_1h: -0.152774
+          percent_change_24h: 0.518894
+          percent_change_7d: 0.986573
+          market_cap: 158055024432
+        BTC:
+          price: 1
+          volume_24h: 772012
+          percent_change_1h: 0
+          percent_change_24h: 0
+          percent_change_7d: 0
+          market_cap: 17024600
+      x-schema-name: cryptocurrency-listings-latest-quote-map
+    cryptocurrency-listings-latest-quote-object:
+      type: object
+      properties:
+        price:
+          type: number
+          description: Price in the specified currency for this historical.
+          example: 7139.82
+        volume_24h:
+          type: number
+          description: Rolling 24 hour adjusted volume in the specified currency.
+          example: 4885880000
+        volume_24h_reported:
+          type: number
+          description: Rolling 24 hour reported volume in the specified currency.
+            *This field is only returned if requested through the `aux` request parameter.*
+          example: 4885880000
+        volume_7d:
+          type: number
+          description: Rolling 7 day adjusted volume in the specified currency. *This
+            field is only returned if requested through the `aux` request parameter.*
+          example: 4885880000
+        volume_7d_reported:
+          type: number
+          description: Rolling 7 day reported volume in the specified currency. *This
+            field is only returned if requested through the `aux` request parameter.*
+          example: 4885880000
+        volume_30d:
+          type: number
+          description: Rolling 30 day adjusted volume in the specified currency. *This
+            field is only returned if requested through the `aux` request parameter.*
+          example: 4885880000
+        volume_30d_reported:
+          type: number
+          description: Rolling 30 day reported volume in the specified currency. *This
+            field is only returned if requested through the `aux` request parameter.*
+          example: 4885880000
+        market_cap:
+          type: number
+          description: Market cap in the specified currency.
+          example: 121020662982
+        percent_change_1h:
+          type: number
+          description: 1 hour change in the specified currency.
+          example: 0.03
+        percent_change_24h:
+          type: number
+          description: 24 hour change in the specified currency.
+          example: 5.75
+        percent_change_7d:
+          type: number
+          description: 7 day change in the specified currency.
+          example: -19.64
+        last_updated:
+          type: string
+          description: Timestamp (ISO 8601) of when the conversion currency's current
+            value was referenced.
+          format: date-time
+          example: 2018-06-02T23:59:59.999Z
+      description: A market quote in the currency conversion option.
+    cryptocurrency-listings-latest-cryptocurrency-object:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The unique CoinMarketCap ID for this cryptocurrency.
+          example: 1
+        name:
+          type: string
+          description: The name of this cryptocurrency.
+          example: Bitcoin
+        symbol:
+          type: string
+          description: The ticker symbol for this cryptocurrency.
+          example: BTC
+        slug:
+          type: string
+          description: The web URL friendly shorthand version of this cryptocurrency
+            name.
+          example: bitcoin
+        cmc_rank:
+          type: integer
+          description: The cryptocurrency's CoinMarketCap rank by market cap.
+          example: 5
+        num_market_pairs:
+          type: integer
+          description: The number of active trading pairs available for this cryptocurrency
+            across supported exchanges.
+          example: 500
+        circulating_supply:
+          type: number
+          description: The approximate number of coins circulating for this cryptocurrency.
+          example: 16950100
+        total_supply:
+          type: number
+          description: The approximate total amount of coins in existence right now
+            (minus any coins that have been verifiably burned).
+          example: 16950100
+        market_cap_by_total_supply:
+          type: number
+          description: The market cap by total supply. *This field is only returned
+            if requested through the `aux` request parameter.*
+          example: 158055024432
+        max_supply:
+          type: number
+          description: The expected maximum limit of coins ever to be available for
+            this cryptocurrency.
+          example: 21000000
+        last_updated:
+          type: string
+          description: Timestamp (ISO 8601) of the last time this cryptocurrency's
+            market data was updated.
+          format: date-time
+          example: 2018-06-02T22:51:28.209Z
+        date_added:
+          type: string
+          description: Timestamp (ISO 8601) of when this cryptocurrency was added
+            to CoinMarketCap.
+          format: date-time
+          example: 2013-04-28T00:00:00Z
+        tags:
+          $ref: '#/components/schemas/tags'
+        platform:
+          $ref: '#/components/schemas/platform'
+        quote:
+          $ref: '#/components/schemas/cryptocurrency-listings-latest-quote-map'
+      description: A cryptocurrency object for every cryptocurrency that matched list
+        options.
+    cryptocurrency-listings-latest-response-model:
+      required:
+      - data
+      - status
+      type: object
+      properties:
+        data:
+          type: array
+          description: Array of cryptocurrency objects matching the list options.
+          items:
+            $ref: '#/components/schemas/cryptocurrency-listings-latest-cryptocurrency-object'
+        status:
+          $ref: '#/components/schemas/api-status-object'
+      example:
+        data:
+        - id: 1
+          name: Bitcoin
+          symbol: BTC
+          slug: bitcoin
+          cmc_rank: 5
+          num_market_pairs: 500
+          circulating_supply: 16950100
+          total_supply: 16950100
+          max_supply: 21000000
+          last_updated: 2018-06-02T22:51:28.209Z
+          date_added: 2013-04-28T00:00:00.000Z
+          tags:
+          - mineable
+          quote:
+            USD:
+              price: 9283.92
+              volume_24h: 7155680000
+              percent_change_1h: -0.152774
+              percent_change_24h: 0.518894
+              percent_change_7d: 0.986573
+              market_cap: 158055024432
+              last_updated: 2018-08-09T22:53:32.000Z
+            BTC:
+              price: 1
+              volume_24h: 772012
+              percent_change_1h: 0
+              percent_change_24h: 0
+              percent_change_7d: 0
+              market_cap: 17024600
+              last_updated: 2018-08-09T22:53:32.000Z
+        status:
+          timestamp: 2018-06-02T22:51:28.209Z
+          error_code: 0
+          error_message: ""
+          elapsed: 10
+          credit_count: 1
+    cryptocurrency-quotes-latest-quote-object:
+      required:
+      - fully_diluted_market_cap
+      - last_updated
+      - market_cap
+      - market_cap_dominance
+      - percent_change_1h
+      - percent_change_24h
+      - percent_change_30d
+      - percent_change_7d
+      - price
+      - volume_24h
+      - volume_change_24h
+      type: object
+      properties:
+        price:
+          type: number
+          description: Price in the specified currency.
+          example: 7139.82
+        volume_24h:
+          type: number
+          description: Rolling 24 hour adjusted volume in the specified currency.
+          example: 4885880000
+        volume_change_24h:
+          type: number
+          description: 24 hour change in the specified currencies volume.
+        volume_24h_reported:
+          type: number
+          description: Rolling 24 hour reported volume in the specified currency.
+            *This field is only returned if requested through the `aux` request parameter.*
+          example: 4885880000
+        volume_7d:
+          type: number
+          description: Rolling 7 day adjusted volume in the specified currency. *This
+            field is only returned if requested through the `aux` request parameter.*
+          example: 4885880000
+        volume_7d_reported:
+          type: number
+          description: Rolling 7 day reported volume in the specified currency. *This
+            field is only returned if requested through the `aux` request parameter.*
+          example: 4885880000
+        volume_30d:
+          type: number
+          description: Rolling 30 day adjusted volume in the specified currency. *This
+            field is only returned if requested through the `aux` request parameter.*
+          example: 4885880000
+        volume_30d_reported:
+          type: number
+          description: Rolling 30 day reported volume in the specified currency. *This
+            field is only returned if requested through the `aux` request parameter.*
+          example: 4885880000
+        market_cap:
+          type: number
+          description: Market cap in the specified currency.
+          example: 121020662982
+        market_cap_dominance:
+          type: number
+          description: Market cap dominance in the specified currency.
+          example: 121020662982
+        fully_diluted_market_cap:
+          type: number
+          description: Fully diluted market cap in the specified currency.
+          example: 121020662982
+        percent_change_1h:
+          type: number
+          description: 1 hour change in the specified currency.
+          example: 0.03
+        percent_change_24h:
+          type: number
+          description: 24 hour change in the specified currency.
+          example: 5.75
+        percent_change_7d:
+          type: number
+          description: 7 day change in the specified currency.
+          example: -19.64
+        percent_change_30d:
+          type: number
+          description: 30 day change in the specified currency.
+          example: -19.64
+        last_updated:
+          type: string
+          description: Timestamp (ISO 8601) of when the conversion currency's current
+            value was referenced.
+          format: date-time
+          example: 2018-06-02T23:59:59.999Z
+      description: A market quote in the currency conversion option.
+    cryptocurrency-quotes-latest-quote-map:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/cryptocurrency-quotes-latest-quote-object'
+      description: A map of market quotes in different currency conversions. The default
+        map included is USD.
+      x-schema-name: cryptocurrency-quotes-latest-quote-map
+    cryptocurrency-quotes-latest-cryptocurrency-object:
+      required:
+      - id
+      - last_updated
+      - name
+      - quote
+      - slug
+      - symbol
+      - tags
+      type: object
+      properties:
+        id:
+          type: integer
+          description: The unique CoinMarketCap ID for this cryptocurrency.
+          example: 1
+        name:
+          type: string
+          description: The name of this cryptocurrency.
+          example: Bitcoin
+        symbol:
+          type: string
+          description: The ticker symbol for this cryptocurrency.
+          example: BTC
+        slug:
+          type: string
+          description: The web URL friendly shorthand version of this cryptocurrency
+            name.
+          example: bitcoin
+        is_active:
+          type: integer
+          description: "1 if this cryptocurrency has at least 1 active market currently\
+            \ being tracked by the platform, otherwise 0. A value of 1 is analogous\
+            \ with `listing_status=active`."
+          example: 1
+        is_fiat:
+          type: integer
+          description: 1 if this is a fiat
+          example: 1
+        cmc_rank:
+          type: integer
+          description: The cryptocurrency's CoinMarketCap rank by market cap.
+          example: 5
+        num_market_pairs:
+          type: integer
+          description: The number of active trading pairs available for this cryptocurrency
+            across supported exchanges.
+          example: 500
+        circulating_supply:
+          type: number
+          description: The approximate number of coins circulating for this cryptocurrency.
+          example: 16950100
+        total_supply:
+          type: number
+          description: The approximate total amount of coins in existence right now
+            (minus any coins that have been verifiably burned).
+          example: 16950100
+        market_cap_by_total_supply:
+          type: number
+          description: The market cap by total supply. *This field is only returned
+            if requested through the `aux` request parameter.*
+          example: 158055024432
+        max_supply:
+          type: number
+          description: The expected maximum limit of coins ever to be available for
+            this cryptocurrency.
+          example: 21000000
+        date_added:
+          type: string
+          description: Timestamp (ISO 8601) of when this cryptocurrency was added
+            to CoinMarketCap.
+          format: date-time
+          example: 2013-04-28T00:00:00Z
+        tags:
+          $ref: '#/components/schemas/tags'
+        platform:
+          $ref: '#/components/schemas/platform'
+        last_updated:
+          type: string
+          description: Timestamp (ISO 8601) of the last time this cryptocurrency's
+            market data was updated.
+          format: date-time
+          example: 2018-06-02T23:59:59.999Z
+        quote:
+          $ref: '#/components/schemas/cryptocurrency-quotes-latest-quote-map'
+      description: A cryptocurrency object for each requested.
+    cryptocurrency-quotes-latest-cryptocurrency-results-map:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/cryptocurrency-quotes-latest-cryptocurrency-object'
+      description: "A map of cryptocurrency objects by ID, symbol, or slug (as used\
+        \ in query parameters)."
+      example:
+        "1":
+          id: 1
+          name: Bitcoin
+          symbol: BTC
+          slug: bitcoin
+          is_active: 1
+          is_fiat: 0
+          circulating_supply: 17199862
+          total_supply: 17199862
+          max_supply: 21000000
+          date_added: 2013-04-28T00:00:00.000Z
+          num_market_pairs: 331
+          cmc_rank: 1
+          last_updated: 2018-08-09T21:56:28.000Z
+          tags:
+          - mineable
+          quote:
+            USD:
+              price: 6602.60701122
+              volume_24h: 4.3144446875194E9
+              percent_change_1h: 0.988615
+              percent_change_24h: 4.37185
+              percent_change_7d: -12.1352
+              percent_change_30d: -12.1352
+              market_cap: 1.1356392943321645E11
+              last_updated: 2018-08-09T21:56:28.000Z
+      x-schema-name: cryptocurrency-quotes-latest-cryptocurrency-results-map
+    cryptocurrency-quotes-latest-response-model:
+      required:
+      - data
+      - status
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/cryptocurrency-quotes-latest-cryptocurrency-results-map'
+        status:
+          $ref: '#/components/schemas/api-status-object'
+      example:
+        data:
+          "1":
+            id: 1
+            name: Bitcoin
+            symbol: BTC
+            slug: bitcoin
+            is_active: 1
+            is_fiat: 0
+            circulating_supply: 17199862
+            total_supply: 17199862
+            max_supply: 21000000
+            date_added: 2013-04-28T00:00:00.000Z
+            num_market_pairs: 331
+            cmc_rank: 1
+            last_updated: 2018-08-09T21:56:28.000Z
+            tags:
+            - mineable
+            quote:
+              USD:
+                price: 6602.60701122
+                volume_24h: 4.3144446875194E9
+                percent_change_1h: 0.988615
+                percent_change_24h: 4.37185
+                percent_change_7d: -12.1352
+                percent_change_30d: -12.1352
+                market_cap: 1.1356392943321645E11
+                last_updated: 2018-08-09T21:56:28.000Z
+        status:
+          error_message: ""
+          elapsed: 10
+          credit_count: 1
+          error_code: 0
+          timestamp: 2021-03-09T20:40:17.153Z
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      name: X-CMC_PRO_API_KEY
+      in: header
