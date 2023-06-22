@@ -67,13 +67,13 @@ func GetTokenPriceMulti(c *gin.Context) {
 
 func GetAllTokensPrice(c *gin.Context) {
 	res := make(map[schema.TokenId]float64)
-	skipZeros, _ := strconv.ParseBool(c.Query("skipZeros"))
+	includeZeros, _ := strconv.ParseBool(c.Query("includeZeros"))
 	for tokenId, ok := range configs.AllIds {
 		if !ok {
 			continue
 		}
 		price := getPrice(c, tokenId)
-		if skipZeros && price == 0 {
+		if !includeZeros && price == 0 {
 			continue
 		}
 		res[tokenId] = price
