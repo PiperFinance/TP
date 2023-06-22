@@ -60,6 +60,8 @@ func main() {
 	router.GET("/stats", ServiceStats)
 	router.GET("/", GetTokenPrice)
 	router.POST("/", GetTokenPriceMulti)
+	router.GET("/all", GetAllTokensPrice)
+	router.GET("/all/ids", GetAllTokenIds)
 
 	cr := cron.New()
 	if _, err := cr.AddFunc(NobitexUSDTPriceUpdaterCron, NobitexUSDTPrice); err != nil {

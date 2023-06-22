@@ -65,6 +65,26 @@ func GetTokenPriceMulti(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+func GetAllTokensPrice(c *gin.Context) {
+	res := make(map[schema.TokenId]float64)
+	skipZeros, _ := strconv.ParseBool(c.Query("skipZeros"))
+	for tokenId, ok := range configs.AllIds {
+		if !ok {
+			continue
+		}
+		price := getPrice(c, tokenId)
+		if skipZeros && price == 0 {
+			continue
+		}
+		res[tokenId] = price
+	}
+	c.JSON(http.StatusOK, res)
+}
+
+func GetAllTokenIds(c *gin.Context) {
+	c.JSON(http.StatusOK, configs.AllIds)
+}
+
 func GetTokenPrice(c *gin.Context) {
 	tokenId := c.Query("tokenId")
 	if len(tokenId) == 0 {

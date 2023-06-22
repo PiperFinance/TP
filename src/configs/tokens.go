@@ -19,6 +19,7 @@ var (
 	WrappedTokensMap     = make(map[schema.TokenId]schema.TokenId)
 	allTokensArray       = make([]schema.Token, 0)
 	allTokens            = make(schema.TokenMapping)
+	AllIds               = make(map[schema.TokenId]bool)
 	geckoTokens          = make(map[string]schema.Token)
 	geckoTokenIds        = make(map[string]schema.TokenId)
 	chainTokens          = make(map[schema.ChainId]schema.TokenMapping)
@@ -71,6 +72,7 @@ func LoadTokens() {
 		allTokensArray = append(allTokensArray, token)
 		geckoTokens[token.Detail.CoingeckoId] = token
 		geckoTokenIds[token.Detail.CoingeckoId] = tokenId
+		AllIds[tokenId] = true
 	}
 }
 
@@ -105,6 +107,9 @@ func LoadWrapped() {
 	err := json.Unmarshal(byteValue, &WrappedTokensMap)
 	if err != nil {
 		log.Fatalf("TokenLoader: %s", err)
+	}
+	for wrappedTokenID := range WrappedTokensMap {
+		AllIds[wrappedTokenID] = true
 	}
 }
 

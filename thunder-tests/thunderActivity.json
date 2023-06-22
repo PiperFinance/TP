@@ -112,19 +112,35 @@
     "colId": "history",
     "containerId": "",
     "name": "http://localhost:6001?tokenId=0xf9c6e3c123f0494a4447100bd7dbd536f43cc33a-250",
-    "url": "http://localhost:6001?tokenId=0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-56",
+    "url": "http://localhost:6001/all?skipZeros=1&currency=IRR",
     "method": "GET",
     "sortNum": 0,
     "created": "2023-06-21T17:17:37.698Z",
-    "modified": "2023-06-22T17:28:39.534Z",
+    "modified": "2023-06-22T17:53:06.270Z",
     "headers": [],
     "params": [
       {
         "name": "tokenId",
         "value": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-56",
+        "isDisabled": true,
+        "isPath": false
+      },
+      {
+        "name": "skipZeros",
+        "value": "1",
+        "isPath": false
+      },
+      {
+        "name": "currency",
+        "value": "IRR",
         "isPath": false
       }
     ],
+    "body": {
+      "type": "json",
+      "raw": "[\n\"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-56\",\n\"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-1\",\n\"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-250\"\n  ]",
+      "form": []
+    },
     "tests": []
   },
   {

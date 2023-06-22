@@ -29,6 +29,7 @@ func CMCPrices() {
 		for tokenId, price := range prices {
 			cacheKey := fmt.Sprintf("CCT:%s", tokenId)
 			_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, price, store.WithExpiration(CMCTPMultiTTL))
+			configs.AllIds[tokenId] = true
 		}
 	}
 }
@@ -45,6 +46,7 @@ func CGPrices() {
 	for _, chunk := range chunks {
 		// TODO - maybe multi referenced price
 		// TODO - Add proxy here ...
+		// TODO - add token Ids
 		res, err := cg.SimplePrice(chunk, []string{"usd"})
 		if err != nil {
 			log.Error(err)
