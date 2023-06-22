@@ -157,21 +157,80 @@
     "colId": "history",
     "containerId": "",
     "name": "http://localhost:6001/stats?tokenId=0xf9c6e3c123f0494a4447100bd7dbd536f43cc33a-250&currency=IRR",
-    "url": "http://localhost:6001/stats?tokenId=0xf9c6e3c123f0494a4447100bd7dbd536f43cc33a-250&currency=IRR",
-    "method": "GET",
+    "url": "http://localhost:6001?currency=IRR",
+    "method": "POST",
     "sortNum": 0,
     "created": "2023-06-21T17:25:19.021Z",
-    "modified": "2023-06-21T17:25:19.021Z",
+    "modified": "2023-06-22T15:28:08.264Z",
     "headers": [],
     "params": [
       {
-        "name": "tokenId",
-        "value": "0xf9c6e3c123f0494a4447100bd7dbd536f43cc33a-250",
+        "name": "currency",
+        "value": "IRR",
+        "isPath": false
+      }
+    ],
+    "body": {
+      "type": "json",
+      "raw": "[\n  \"0xf9c6e3c123f0494a4447100bd7dbd536f43cc33a-250\",\n  \"0xf9c6e3c123f0494a4447100bd7dbd536f43cc33a-250\",\n  \"0xf9c6e3c123f0494a4447100bd7dbd536f43cc33a-250\"\n]",
+      "form": []
+    },
+    "tests": []
+  },
+  {
+    "_id": "7ca8edb1-9e27-4438-b343-671dc516eafe",
+    "colId": "history",
+    "containerId": "",
+    "name": "https://www.thunderclient.com/welcome",
+    "url": "https://www.thunderclient.com/welcome",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2023-06-22T15:26:26.664Z",
+    "modified": "2023-06-22T15:26:26.664Z",
+    "headers": [],
+    "params": [],
+    "tests": []
+  },
+  {
+    "_id": "b2d8cca4-a827-4ee6-a919-bcfd3b707e2a",
+    "colId": "history",
+    "containerId": "",
+    "name": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=6000&page=1&sparkline=false&locale=en",
+    "url": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=6000&page=1&sparkline=false&locale=en",
+    "method": "GET",
+    "sortNum": 0,
+    "created": "2023-06-22T15:26:28.267Z",
+    "modified": "2023-06-22T15:26:28.267Z",
+    "headers": [],
+    "params": [
+      {
+        "name": "vs_currency",
+        "value": "usd",
         "isPath": false
       },
       {
-        "name": "currency",
-        "value": "IRR",
+        "name": "order",
+        "value": "market_cap_desc",
+        "isPath": false
+      },
+      {
+        "name": "per_page",
+        "value": "6000",
+        "isPath": false
+      },
+      {
+        "name": "page",
+        "value": "1",
+        "isPath": false
+      },
+      {
+        "name": "sparkline",
+        "value": "false",
+        "isPath": false
+      },
+      {
+        "name": "locale",
+        "value": "en",
         "isPath": false
       }
     ],

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -15,28 +14,7 @@ import (
 	"TP/schema"
 )
 
-func GetTokenPriceMulti(c *gin.Context) {
-	ids := make([]schema.TokenId, 1)
-	res := make(map[schema.TokenId]float64)
-	err := c.BindJSON(&ids)
-	if err != nil {
-		log.Error(err)
-		return
-	}
-	for _, tokenId := range ids {
-		cacheKey := fmt.Sprintf("CT:%s", tokenId)
-		tokenPrice, _ := configs.TokenPriceCache.Get(context.Background(), cacheKey)
-		res[tokenId] = tokenPrice
-	}
-	c.JSON(http.StatusOK, res)
-}
-
-func GetTokenPrice(c *gin.Context) {
-	tokenId := c.Query("tokenId")
-	if len(tokenId) == 0 {
-		return
-	}
-	// NOTE - to change usd to other currencies, by default is USD
+func getPrice(c *gin.Context, tokenId schema.TokenId) float64 {
 	multiplier := float64(0)
 	currencyQ := c.Query("currency")
 	switch currencyQ {
@@ -47,6 +25,7 @@ func GetTokenPrice(c *gin.Context) {
 	case "IRR":
 		multiplier = nobitex.LastIRRPrice(c)
 	}
+	// NOTE - to change usd to other currencies, by default is USD
 	var tokenPrice float64
 	geckoPrice, _ := strconv.ParseFloat(configs.RedisClient.Get(c, fmt.Sprintf("CGT:%s", tokenId)).Val(), 64)
 	cmcPrice, _ := strconv.ParseFloat(configs.RedisClient.Get(c, fmt.Sprintf("CCT:%s", tokenId)).Val(), 64)
@@ -58,7 +37,31 @@ func GetTokenPrice(c *gin.Context) {
 	} else if geckoPrice > 0 {
 		tokenPrice = geckoPrice
 	}
-	c.IndentedJSON(http.StatusOK, tokenPrice*multiplier)
+	return tokenPrice * multiplier
+}
+
+func GetTokenPriceMulti(c *gin.Context) {
+	ids := make([]schema.TokenId, 0)
+	res := make(map[schema.TokenId]float64)
+	err := c.BindJSON(&ids)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+
+	for _, tokenId := range ids {
+		res[tokenId] = getPrice(c, tokenId)
+	}
+
+	c.JSON(http.StatusOK, res)
+}
+
+func GetTokenPrice(c *gin.Context) {
+	tokenId := c.Query("tokenId")
+	if len(tokenId) == 0 {
+		return
+	}
+	c.IndentedJSON(http.StatusOK, getPrice(c, schema.TokenId(tokenId)))
 }
 
 type Stats struct {

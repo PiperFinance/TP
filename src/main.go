@@ -41,6 +41,8 @@ func init() {
 	configs.LoadConfig()
 	configs.LoadLogger()
 	configs.LoadCache()
+	configs.LoadTokens()
+	configs.LoadWrapped()
 	configs.LoadCMC()
 	cmcUSDClient = simplecmc.Client{
 		ApiKeys:  configs.Config.CMCApiKeys,

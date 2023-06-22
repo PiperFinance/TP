@@ -44,6 +44,7 @@ func CGPrices() {
 	counter := 0
 	for _, chunk := range chunks {
 		// TODO - maybe multi referenced price
+		// TODO - Add proxy here ...
 		res, err := cg.SimplePrice(chunk, []string{"usd"})
 		if err != nil {
 			log.Error(err)
