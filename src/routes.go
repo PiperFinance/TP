@@ -29,7 +29,15 @@ func getPrice(c *gin.Context, tokenId schema.TokenId) float64 {
 	var tokenPrice float64
 	geckoPrice, _ := strconv.ParseFloat(configs.RedisClient.Get(c, fmt.Sprintf("CGT:%s", tokenId)).Val(), 64)
 	cmcPrice, _ := strconv.ParseFloat(configs.RedisClient.Get(c, fmt.Sprintf("CCT:%s", tokenId)).Val(), 64)
-
+	if cmcPrice == 0 && geckoPrice == 0 {
+		// NOTE - if 0xeeeee... not found tries it's wrapped values !
+		tokenId, ok := configs.WrappedTokensMap[tokenId]
+		if !ok {
+			return 0
+		}
+		geckoPrice, _ = strconv.ParseFloat(configs.RedisClient.Get(c, fmt.Sprintf("CGT:%s", tokenId)).Val(), 64)
+		cmcPrice, _ = strconv.ParseFloat(configs.RedisClient.Get(c, fmt.Sprintf("CCT:%s", tokenId)).Val(), 64)
+	}
 	if cmcPrice > 0 && geckoPrice > 0 {
 		tokenPrice = (cmcPrice + geckoPrice) / 2
 	} else if cmcPrice > 0 {
@@ -37,6 +45,7 @@ func getPrice(c *gin.Context, tokenId schema.TokenId) float64 {
 	} else if geckoPrice > 0 {
 		tokenPrice = geckoPrice
 	}
+
 	return tokenPrice * multiplier
 }
 
@@ -59,9 +68,15 @@ func GetTokenPriceMulti(c *gin.Context) {
 func GetTokenPrice(c *gin.Context) {
 	tokenId := c.Query("tokenId")
 	if len(tokenId) == 0 {
+		c.IndentedJSON(http.StatusUnprocessableEntity, -1)
 		return
 	}
-	c.IndentedJSON(http.StatusOK, getPrice(c, schema.TokenId(tokenId)))
+	price := getPrice(c, schema.TokenId(tokenId))
+	if price == 0 {
+		c.IndentedJSON(http.StatusTooEarly, 0)
+	} else {
+		c.IndentedJSON(http.StatusOK, price)
+	}
 }
 
 type Stats struct {
