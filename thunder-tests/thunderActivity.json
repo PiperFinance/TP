@@ -112,18 +112,19 @@
     "colId": "history",
     "containerId": "",
     "name": "http://localhost:6001?tokenId=0xf9c6e3c123f0494a4447100bd7dbd536f43cc33a-250",
-    "url": "http://localhost:6001/all",
+    "url": "http://localhost:6001/?tokenId=0x350a791bfc2c21f9ed5d10980dad2e2638ffa7f6-10",
     "method": "GET",
     "sortNum": 0,
     "created": "2023-06-21T17:17:37.698Z",
-    "modified": "2023-06-22T17:56:32.344Z",
+    "modified": "2023-06-23T06:28:47.247Z",
     "headers": [],
-    "params": [],
-    "body": {
-      "type": "json",
-      "raw": "[\n\"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-56\",\n\"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-1\",\n\"0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-250\"\n  ]",
-      "form": []
-    },
+    "params": [
+      {
+        "name": "tokenId",
+        "value": "0x350a791bfc2c21f9ed5d10980dad2e2638ffa7f6-10",
+        "isPath": false
+      }
+    ],
     "tests": []
   },
   {

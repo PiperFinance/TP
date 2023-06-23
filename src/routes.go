@@ -29,14 +29,23 @@ func getPrice(c *gin.Context, tokenId schema.TokenId) float64 {
 	var tokenPrice float64
 	geckoPrice, _ := strconv.ParseFloat(configs.RedisClient.Get(c, fmt.Sprintf("CGT:%s", tokenId)).Val(), 64)
 	cmcPrice, _ := strconv.ParseFloat(configs.RedisClient.Get(c, fmt.Sprintf("CCT:%s", tokenId)).Val(), 64)
+	// NOTE - in case no results were found again
+	if cmcPrice == 0 && geckoPrice == 0 {
+		token, ok := configs.AllTokens[tokenId]
+		if ok {
+			cmcPrice, _ = strconv.ParseFloat(
+				configs.RedisClient.Get(
+					c,
+					fmt.Sprintf("CCT:GID:%s", token.Detail.CoingeckoId)).Val(), 64)
+		}
+	}
 	if cmcPrice == 0 && geckoPrice == 0 {
 		// NOTE - if 0xeeeee... not found tries it's wrapped values !
 		tokenId, ok := configs.WrappedTokensMap[tokenId]
-		if !ok {
-			return 0
+		if ok {
+			geckoPrice, _ = strconv.ParseFloat(configs.RedisClient.Get(c, fmt.Sprintf("CGT:%s", tokenId)).Val(), 64)
+			cmcPrice, _ = strconv.ParseFloat(configs.RedisClient.Get(c, fmt.Sprintf("CCT:%s", tokenId)).Val(), 64)
 		}
-		geckoPrice, _ = strconv.ParseFloat(configs.RedisClient.Get(c, fmt.Sprintf("CGT:%s", tokenId)).Val(), 64)
-		cmcPrice, _ = strconv.ParseFloat(configs.RedisClient.Get(c, fmt.Sprintf("CCT:%s", tokenId)).Val(), 64)
 	}
 	if cmcPrice > 0 && geckoPrice > 0 {
 		tokenPrice = (cmcPrice + geckoPrice) / 2

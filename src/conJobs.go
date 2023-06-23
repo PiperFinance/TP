@@ -27,8 +27,20 @@ func CMCPrices() {
 		log.Errorf("CMCErr: %+v", err)
 	} else {
 		for tokenId, price := range prices {
-			cacheKey := fmt.Sprintf("CCT:%s", tokenId)
-			_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, price, store.WithExpiration(CMCTPMultiTTL))
+			_ = configs.TokenPriceCache.Set(
+				context.Background(),
+				fmt.Sprintf("CCT:%s", tokenId),
+				price,
+				store.WithExpiration(CMCTPMultiTTL))
+			token, ok := configs.AllTokens[tokenId]
+			if ok {
+				_ = configs.TokenPriceCache.Set(
+					context.Background(),
+					fmt.Sprintf("CCT:GID:%s", token.Detail.CoingeckoId),
+					// fmt.Sprintf("CCT:GID:%s:TID:%s", token.Detail.CoingeckoId, tokenId),
+					price,
+					store.WithExpiration(CMCTPMultiTTL))
+			}
 			configs.AllIds[tokenId] = true
 		}
 	}
@@ -53,8 +65,18 @@ func CGPrices() {
 		} else {
 			counter++
 			for geckoId, currencies := range *res {
-				cacheKey := fmt.Sprintf("CGT:%s", configs.GeckoIdToTokenId(geckoId))
-				_ = configs.TokenPriceCache.Set(context.Background(), cacheKey, float64(currencies["usd"]), store.WithExpiration(CGTPMultiTTL))
+				_ = configs.TokenPriceCache.Set(
+					context.Background(),
+					fmt.Sprintf("CGT:%s", configs.GeckoIdToTokenId(geckoId)),
+					float64(currencies["usd"]),
+					store.WithExpiration(CGTPMultiTTL))
+
+				_ = configs.TokenPriceCache.Set(
+					context.Background(),
+					fmt.Sprintf("CGT:ID:%s", geckoId),
+					float64(currencies["usd"]),
+					store.WithExpiration(CGTPMultiTTL))
+
 			}
 			time.Sleep(CGTPMultiCallDelay)
 			log.Infof("--successfully fetched %d", counter)

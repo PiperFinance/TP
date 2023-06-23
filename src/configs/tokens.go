@@ -18,7 +18,7 @@ import (
 var (
 	WrappedTokensMap     = make(map[schema.TokenId]schema.TokenId)
 	allTokensArray       = make([]schema.Token, 0)
-	allTokens            = make(schema.TokenMapping)
+	AllTokens            = make(schema.TokenMapping)
 	AllIds               = make(map[schema.TokenId]bool)
 	geckoTokens          = make(map[string]schema.Token)
 	geckoTokenIds        = make(map[string]schema.TokenId)
@@ -59,11 +59,11 @@ func LoadTokens() {
 			log.Fatalf("JSONTokenLoader: %s", err)
 		}
 	}
-	err := json.Unmarshal(byteValue, &allTokens)
+	err := json.Unmarshal(byteValue, &AllTokens)
 	if err != nil {
 		log.Fatalf("TokenLoader: %s", err)
 	}
-	for tokenId, token := range allTokens {
+	for tokenId, token := range AllTokens {
 		chainId := token.Detail.ChainId
 		if chainTokens[chainId] == nil {
 			chainTokens[chainId] = make(schema.TokenMapping)
@@ -122,11 +122,11 @@ func GenTokenIdExtra(address string, chainId schema.ChainId) schema.TokenId {
 }
 
 func GetToken(id schema.TokenId) schema.Token {
-	return allTokens[id]
+	return AllTokens[id]
 }
 
 func AllChainsTokens() schema.TokenMapping {
-	return allTokens
+	return AllTokens
 }
 
 func AllChainsTokensArray() []schema.Token {
