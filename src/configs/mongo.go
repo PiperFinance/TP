@@ -2,47 +2,65 @@ package configs
 
 import (
 	"context"
-	"os"
-	"sync"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-var mongoBackgroundContextOnce sync.Once
+const (
+	// LogColName Collection name for transfers events
+	LogColName          = "Logs"
+	BlockColName        = "Blocks"
+	TokenColName        = "Tokens"
+	ParsedLogColName    = "ParsedLogs"
+	UserBalColName      = "UsersBalance"
+	BannedUsersColName  = "BannedUsers"
+	TransfersColName    = "Transfers"
+	TokenVolumeColName  = "TokenVolume"
+	TokenUserMapColName = "TokenUserMap"
+	UserTokenMapColName = "UserTokenMap"
+	QueueErrorsColName  = "QErr"
+	TokenPriceDB        = "TP"
+	PriceCol            = "TokenPriceTS"
+	BlockScannerDB      = "BS_Main"
+	AggregatedUsers     = "Users"
+)
 
-var mongoClient *mongo.Client
+var (
+	mongoCl       *mongo.Client
+	MongoPriceCol *mongo.Collection
+)
 
-//mongoUrl : Sample url format is mongodb://[username:password@]host1[:port1][,...hostN[:portN]][/[defaultauthdb][?options]]
-func mongoUrl() string {
-	mongoURL, ok := os.LookupEnv("MONGO_URL")
-	if !ok {
-		log.Errorf("Missing MONGO_URL env, defaulting to mongodb://localhost:27017")
-		mongoURL = "mongodb://localhost:27017"
-	}
-	return mongoURL
-}
-
-func newMongoClient() *mongo.Client {
-	_mongoClient, err := mongo.NewClient(options.Client().ApplyURI(mongoUrl()))
+func LoadMongo() {
+	time.Sleep(Config.MongoSlowLoading)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	opts := options.Client().ApplyURI(Config.MongoUrl.String())
+	opts.MaxPoolSize = &Config.MongoMaxPoolSize
+	var err error
+	mongoCl, err = mongo.Connect(ctx, opts)
 	if err != nil {
-		log.Fatal(err)
-		panic(err)
+		Logger.Panicf("Mongo: %s", err)
 	}
-	return _mongoClient
-}
 
-//GetMongo Singleton Approach to get mongo connection (Defaults to context.Background)
-func GetMongo() *mongo.Client {
-	mongoBackgroundContextOnce.Do(func() {
-		mongoClient := newMongoClient()
-		ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-		err := mongoClient.Connect(ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-	})
-	return mongoClient
+	err = mongoCl.Ping(ctx, nil)
+	if err != nil {
+		Logger.Panicf("Mongo: %s", err)
+	}
+
+	MongoPriceCol = mongoCl.Database(TokenPriceDB).Collection(PriceCol)
+
+	MongoPriceCol.Indexes().CreateOne(
+		ctx, mongo.IndexModel{
+			Keys:    bson.D{{Key: "token_id", Value: 1}, {Key: "level", Value: 1}},
+			Options: options.Index().SetUnique(true),
+		})
+
+	MongoPriceCol.Indexes().CreateOne(
+		ctx, mongo.IndexModel{
+			Keys:    bson.D{{Key: "currency", Value: 1}, {Key: "level", Value: 1}},
+			Options: options.Index().SetUnique(true),
+		})
 }

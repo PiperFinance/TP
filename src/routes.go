@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -15,8 +16,11 @@ import (
 )
 
 func getPrice(c *gin.Context, tokenId schema.TokenId) float64 {
+	return getPriceRaw(c, c.Query("currency"), tokenId)
+}
+
+func getPriceRaw(c context.Context, currencyQ string, tokenId schema.TokenId) float64 {
 	multiplier := float64(0)
-	currencyQ := c.Query("currency")
 	switch currencyQ {
 	case "":
 		multiplier = 1
@@ -77,10 +81,7 @@ func GetTokenPriceMulti(c *gin.Context) {
 func GetAllTokensPrice(c *gin.Context) {
 	res := make(map[schema.TokenId]float64)
 	includeZeros, _ := strconv.ParseBool(c.Query("includeZeros"))
-	for tokenId, ok := range configs.AllIds {
-		if !ok {
-			continue
-		}
+	for tokenId := range configs.AllIds {
 		price := getPrice(c, tokenId)
 		if !includeZeros && price == 0 {
 			continue
@@ -92,6 +93,11 @@ func GetAllTokensPrice(c *gin.Context) {
 
 func GetAllTokenIds(c *gin.Context) {
 	c.JSON(http.StatusOK, configs.AllIds)
+}
+
+func GetCurrencies(c *gin.Context) {
+	r := []schema.Currency{schema.Rial, schema.USD}
+	c.IndentedJSON(http.StatusOK, &r)
 }
 
 func GetTokenPrice(c *gin.Context) {

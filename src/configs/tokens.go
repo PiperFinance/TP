@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
@@ -19,9 +21,10 @@ var (
 	WrappedTokensMap     = make(map[schema.TokenId]schema.TokenId)
 	allTokensArray       = make([]schema.Token, 0)
 	AllTokens            = make(schema.TokenMapping)
-	AllIds               = make(map[schema.TokenId]bool)
-	geckoTokens          = make(map[string]schema.Token)
-	geckoTokenIds        = make(map[string]schema.TokenId)
+	AllIds               = make(map[schema.TokenId]time.Time)
+	AllIdsMutex          = sync.Mutex{}
+	TSIds                = make(map[schema.TokenId]bool)
+	geckoTokenIds        = make(map[string][]schema.TokenId)
 	chainTokens          = make(map[schema.ChainId]schema.TokenMapping)
 	NULL_TOKEN_ADDRESS   = common.HexToAddress("0x0000000000000000000000000000000000000000")
 	NATIVE_TOKEN_ADDRESS = common.HexToAddress("0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE")
@@ -70,9 +73,11 @@ func LoadTokens() {
 		}
 		chainTokens[chainId][tokenId] = token
 		allTokensArray = append(allTokensArray, token)
-		geckoTokens[token.Detail.CoingeckoId] = token
-		geckoTokenIds[token.Detail.CoingeckoId] = tokenId
-		AllIds[tokenId] = true
+		if _, ok := geckoTokenIds[token.Detail.CoingeckoId]; !ok {
+			geckoTokenIds[token.Detail.CoingeckoId] = make([]schema.TokenId, 0)
+		}
+		geckoTokenIds[token.Detail.CoingeckoId] = append(geckoTokenIds[token.Detail.CoingeckoId], tokenId)
+		AllIds[tokenId] = time.Time{}
 	}
 }
 
@@ -109,7 +114,7 @@ func LoadWrapped() {
 		log.Fatalf("TokenLoader: %s", err)
 	}
 	for wrappedTokenID := range WrappedTokensMap {
-		AllIds[wrappedTokenID] = true
+		AllIds[wrappedTokenID] = time.Time{}
 	}
 }
 
@@ -137,11 +142,7 @@ func ChainTokens(id schema.ChainId) schema.TokenMapping {
 	return chainTokens[id]
 }
 
-func GeckoIdToToken(geckoId string) schema.Token {
-	return geckoTokens[geckoId]
-}
-
-func GeckoIdToTokenId(geckoId string) schema.TokenId {
+func GeckoIdToTokenId(geckoId string) []schema.TokenId {
 	return geckoTokenIds[geckoId]
 }
 

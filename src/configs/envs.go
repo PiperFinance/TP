@@ -39,6 +39,7 @@ type config struct {
 	TestTimeout                  time.Duration `env:"TEST_RPC_CONNECTION_TIMEOUT" envDefault:"15s"`
 	ScanTaskTimeout              time.Duration `env:"SCAN_TASK_TIMEOUT" envDefault:"25s"`
 	UpdateOnlineUsersTaskTimeout time.Duration `env:"ONLINE_USERS_TASK_TIMEOUT" envDefault:"25s"`
+	CaptureTimeSeriesTaskTimeout time.Duration `env:"TIME_SERIES_TASK_TIMEOUT" envDefault:"58s"`
 	LogLevel                     string        `env:"LOG_LEVEL" envDefault:"warn"`
 	LogDir                       string        `env:"LOG_DIR" envDefault:"/var/bs/log"`
 	MainnetDir                   string        `env:"MAINNET_DIR" envDefault:"/data/mainnets.json"`
@@ -62,7 +63,8 @@ type config struct {
 	CGPlatformsDir               string        `env:"CG_PLATFORMS_DIR" envDefault:"/data/cgPlatforms.json"`
 	CMCPlatformsURL              url.URL       `env:"CMC_PLATFORMS_URL" envDefault:"https://raw.githubusercontent.com/PiperFinance/CD/main/cmcPlatforms.json"`
 	CGPlatformsURL               url.URL       `env:"CG_PLATFORMS_URL" envDefault:"https://raw.githubusercontent.com/PiperFinance/CD/main/cgPlatforms.json"`
-	ZapLogLevel                  zapcore.Level
+
+	ZapLogLevel zapcore.Level
 }
 
 var Config config
