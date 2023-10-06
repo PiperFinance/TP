@@ -2,6 +2,7 @@ package configs
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/eko/gocache/v3/cache"
@@ -10,6 +11,8 @@ import (
 	"github.com/jellydator/ttlcache/v3"
 	gocache "github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
+
+	"TP/schema"
 )
 
 var (
@@ -72,3 +75,9 @@ func LoadCache() {
 	}
 	// fmt.Printf("%#+v\n", value)
 }
+
+func InsertedTSHKey(tokenId schema.TokenId, level schema.TimeSeriesLevel) (string, string) {
+	return "TP:INTIDs", fmt.Sprintf("id:%s:%s", tokenId, level)
+}
+
+// return fmt.Sprintf("UTHS:%d", chain), fmt.Sprintf("%s-%s", user.String(), token.String())

@@ -1,6 +1,7 @@
 package configs
 
 import (
+	"TP/schema"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,8 +14,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	log "github.com/sirupsen/logrus"
-
-	"TP/schema"
 )
 
 var (
@@ -22,7 +21,7 @@ var (
 	allTokensArray       = make([]schema.Token, 0)
 	AllTokens            = make(schema.TokenMapping)
 	AllIds               = make(map[schema.TokenId]time.Time)
-	AllIdsMutex          = sync.Mutex{}
+	AllIdsMutex          = sync.RWMutex{}
 	TSIds                = make(map[schema.TokenId]bool)
 	geckoTokenIds        = make(map[string][]schema.TokenId)
 	chainTokens          = make(map[schema.ChainId]schema.TokenMapping)

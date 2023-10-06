@@ -54,13 +54,16 @@ func LoadMongo() {
 
 	MongoPriceCol.Indexes().CreateOne(
 		ctx, mongo.IndexModel{
-			Keys:    bson.D{{Key: "token_id", Value: 1}, {Key: "level", Value: 1}},
-			Options: options.Index().SetUnique(true),
+			Keys: bson.D{{Key: "token_id", Value: 1}, {Key: "level", Value: 1}},
 		})
 
 	MongoPriceCol.Indexes().CreateOne(
 		ctx, mongo.IndexModel{
-			Keys:    bson.D{{Key: "currency", Value: 1}, {Key: "level", Value: 1}},
+			Keys: bson.D{{Key: "currency", Value: 1}, {Key: "level", Value: 1}},
+		})
+	MongoPriceCol.Indexes().CreateOne(
+		ctx, mongo.IndexModel{
+			Keys:    bson.D{{Key: "token_id", Value: 1}, {Key: "level", Value: 1}, {Key: "currency", Value: 1}},
 			Options: options.Index().SetUnique(true),
 		})
 }
