@@ -20,6 +20,7 @@ services:
     networks:
       - tp_net
       - redis_db
+      - mongo_db
 
 networks:
   redis_db:
